@@ -13,13 +13,22 @@
     </script>
 </head>
 <body>
-    <div id="layout">
+    <main>
         <canvas id="three-canvas"></canvas>
-        <div id="ui-panel">
-            <div id="ui-panel-top"></div>
-            <div id="ui-panel-bottom"></div>
+    </main>
+
+    <div id="sidebar">
+        <ol id="position-list"></ol>
+        <div id="position">
+            x<input id="x-input" type="number">
+            y<input id="y-input" type="number">
+            z<input id="z-input" type="number">
         </div>
-        <script type="module" src="script.js"></script>
+        <div id="toolbar">
+            <button id="create-button">作成</button>
+        </div>
     </div>
+
+    <script type="module" src="./script.js"></script>
 </body>
 </html>
