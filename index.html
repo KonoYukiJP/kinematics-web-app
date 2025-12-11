@@ -1,34 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <title>Kenematics</title>
-    <link rel="stylesheet" href="style.css">
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@0.175.0/build/three.module.js"
-            }
-        }
-    </script>
 </head>
 <body>
-    <main>
-        <canvas id="three-canvas"></canvas>
-    </main>
-
-    <div id="sidebar">
-        <ol id="position-list"></ol>
-        <div id="position">
-            x<input id="x-input" type="number">
-            y<input id="y-input" type="number">
-            z<input id="z-input" type="number">
-        </div>
-        <div id="toolbar">
-            <button id="create-button">作成</button>
-        </div>
-    </div>
-
-    <script type="module" src="./script.js"></script>
+    <div id="root"></div>
+    <script type="module" src="./src/index.tsx"></script>
 </body>
 </html>

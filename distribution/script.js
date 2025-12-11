@@ -1,6 +1,6 @@
 // src/main.ts
 import { setupInteractions, initialize } from './three';
-import { setupLineLoader, setupExportButton } from './exporter';
+import { setupLineLoader, setupExportButton } from '../exporter';
 // アニメーションループ
 function animate(renderer, scene, camera) {
     function loop() {

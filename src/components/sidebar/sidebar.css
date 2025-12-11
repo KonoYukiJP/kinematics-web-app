@@ -1,0 +1,13 @@
+#sidebar {
+    width: 100%;
+    flex: 1;
+    border-right: 1px solid #fff;
+    box-sizing: border-box;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: white;
+    background: #222;
+    overflow-y: auto;
+}

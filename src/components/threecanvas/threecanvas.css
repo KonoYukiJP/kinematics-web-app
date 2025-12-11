@@ -1,0 +1,7 @@
+/* three.css */
+
+#three-canvas {
+    flex-grow: 1;
+    height: '100%';
+    position: 'relative';
+}
