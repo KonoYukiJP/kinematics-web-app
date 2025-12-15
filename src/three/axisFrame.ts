@@ -1,12 +1,19 @@
+// axisFrame.ts
+
 import * as THREE from 'three';
 import { createLabel } from './labels';
 
-export function buildAxisFrame(scene: THREE.Scene) {
+export function buildAxisFrame(
+    scene: THREE.Scene,
+    xBounds: [number, number],
+    yBounds: [number, number],
+    zBounds: [number, number],
+    unit: number
+) {
     // X/Y/Z の範囲
-    const xMin = -50, xMax = 50;
-    const yMin = 0,   yMax = 100;
-    const zMin = -50, zMax = 50;
-    const unit = 10;
+    const [xMin, xMax] = xBounds;
+    const [yMin, yMax] = yBounds;
+    const [zMin, zMax] = zBounds;
 
     // 枠を作る
     const material = new THREE.LineBasicMaterial({ color: 0x000000 });

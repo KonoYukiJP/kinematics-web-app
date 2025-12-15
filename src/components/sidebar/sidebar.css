@@ -1,13 +1,57 @@
 #sidebar {
-    width: 100%;
     flex: 1;
-    border-right: 1px solid #fff;
+    width: 100%;
     box-sizing: border-box;
+    border: 1px solid #333;
+    border-radius: 16px;
     padding: 8px;
+    color: white;
+    background-color: #222;
     display: flex;
     flex-direction: column;
+}
+
+/* タイトル (Robot Settings / Task Points) */
+#sidebar h2 {
+    margin: 8px 0 12px 0;
+    font-size: 32px;
+}
+
+/* 追加 / 削除 ボタンのエリア */
+.list-tools {
+    display: flex;
     gap: 8px;
-    color: white;
-    background: #222;
+}
+
+.list-tools button {
+    flex: 1;
+    padding: 8px 0;
+    background-color: #444;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+/* 下のリスト (追加された点の一覧) */
+.list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
     overflow-y: auto;
+    border-top: 1px solid #333;
+    padding-top: 8px;
+}
+
+.list li {
+    padding: 6px 4px;
+    border-bottom: 1px solid #333;
+    font-size: 14px;
+    color: #ccc;
+}
+
+.list-tools button:hover {
+    background-color: #555;
 }

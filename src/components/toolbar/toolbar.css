@@ -1,0 +1,65 @@
+/* toolbar.css */
+
+#toolbar {
+    width: 100%;
+    border-top: 1px solid #333;
+    border-radius: 16px;
+    box-sizing: border-box;
+    padding: 8px;
+    background-color: #1d1d1d;
+    display: flex;
+    gap: 8px;
+}
+
+/* 各入力行 (X/Y/Z) */
+.pointinput {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+/* X, Y, Z ラベル */
+.pointinput label {
+    width: 16px;
+    font-size: 16px;
+    color: white;
+}
+
+/* 数字入力 */
+.pointinput input {
+    flex: 1;
+    padding: 2px 2px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #fff;
+    background: none;
+    outline: none;
+}
+
+.pointinput input:focus {
+    border: 1px solid #666;
+    background-color: #444;
+}
+
+/* 下のボタン（✖️と✔️） */
+.toolbar-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.toolbar-buttons button {
+    width: 44px;
+    height: 44px;
+    padding: 8px 0;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    color: white;
+    background: none;
+    cursor: pointer;
+}
+
+.toolbar-buttons button:hover {
+    background-color: #444;
+}

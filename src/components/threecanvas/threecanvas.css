@@ -1,7 +1,17 @@
 /* three.css */
 
 #three-canvas {
-    flex-grow: 1;
-    height: '100%';
-    position: 'relative';
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+}
+
+.label-renderer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
 }

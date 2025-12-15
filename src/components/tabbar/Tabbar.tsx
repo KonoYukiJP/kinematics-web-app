@@ -1,38 +1,28 @@
 // TabBar.tsx
+
 import React from 'react';
+import './tabbar.css';
 
 type Props = {
-    activeTab: 'robot' | 'taskPoint';
-    onChangeTab: (tab: 'robot' | 'taskPoint') => void;
+    activeTab: 'robot' | 'task';
+    onChangeTab: (tab: 'robot' | 'task') => void;
 };
 
 export function Tabbar({ activeTab, onChangeTab }: Props) {
     return (
-        <div style={{
-            display: 'flex',
-            borderTop: '1px solid #444',
-            height: '48px'
-        }}>
+        <div id='tabbar'>
             <button
-                style={{
-                    flex: 1,
-                    background: activeTab === 'robot' ? '#333' : '#222',
-                    color: 'white'
-                }}
+                className={activeTab==='robot' ? 'tab active' : 'tab'}
                 onClick={() => onChangeTab('robot')}
             >
                 ロボット
             </button>
 
             <button
-                style={{
-                    flex: 1,
-                    background: activeTab === 'taskPoint' ? '#333' : '#222',
-                    color: 'white'
-                }}
-                onClick={() => onChangeTab('taskPoint')}
+                className={activeTab==='task' ? 'tab active' : 'tab'}
+                onClick={() => onChangeTab('task')}
             >
-                タスク点
+                タスク
             </button>
         </div>
     );

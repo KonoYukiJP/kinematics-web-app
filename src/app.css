@@ -1,3 +1,5 @@
+/* app.css */
+
 :root {
     --primary: #c9bddd;
     --secondary: #dfe4e7;
@@ -80,7 +82,7 @@ button {
 }
 
 #app-container {
-    width: '100%';
-    height: '100%';
-    display: 'flex';
+    width: 100%;
+    height: 100%;
+    display: flex;
 }

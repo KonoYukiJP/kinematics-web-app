@@ -1,51 +1,62 @@
+// Toolbar.tsx
 
+import React from 'react';
+import './toolbar.css';
+
+type Point = [number, number, number];
 
 type Props = {
-    value: [number, number, number];
-    onChange: (v: [number, number, number]) => void;
+    point: Point;
+    onFocusX: () => void;
+    onFocusY: () => void;
+    onFocusZ: () => void;
+    onChange: (p: Point) => void;
     onConfirm: () => void;
     onCancel: () => void;
 };
 
-export function Toolbar({ value, onChange, onConfirm, onCancel }: Props) {
-    const update = (index: number, val: number) => {
-        const newVal = [...value] as [number,number,number];
-        newVal[index] = val;
-        onChange(newVal);
+export function Toolbar({ point, onFocusX, onFocusY, onFocusZ, onChange, onConfirm, onCancel }: Props) {
+    const update = (index: number, value: number) => {
+        const newPoint = [...point] as [number, number, number];
+        newPoint[index] = value;
+        onChange(newPoint);
     };
 
     return (
-        <div id="point-editor">
-            <div className="editor-row">
+        <div id="toolbar">
+            <div className="pointinput">
                 <label>X</label>
                 <input 
                     type="number" 
-                    value={value[0]} 
+                    value={point[0].toFixed(2)}
+                    onFocus={onFocusX}
                     onChange={e => update(0, Number(e.target.value))}
                 />
             </div>
 
-            <div className="editor-row">
+            <div className="pointinput">
                 <label>Y</label>
                 <input 
                     type="number" 
-                    value={value[1]} 
+                    value={point[1].toFixed(2)} 
+                    onFocus={onFocusY}
                     onChange={e => update(1, Number(e.target.value))}
                 />
             </div>
 
-            <div className="editor-row">
+            <div className="pointinput">
                 <label>Z</label>
                 <input 
                     type="number" 
-                    value={value[2]} 
+                    value={point[2].toFixed(2)} 
+                    onFocus={onFocusZ}
                     onChange={e => update(2, Number(e.target.value))}
                 />
             </div>
 
-            <div className="editor-buttons">
-                <button onClick={onConfirm}>✔</button>
-                <button onClick={onCancel}>キャンセル</button>
+            <div className="toolbar-buttons">
+                <button onClick={onCancel}>✖️</button>
+                <button onClick={onConfirm}>✔️</button>
             </div>
         </div>
     );
