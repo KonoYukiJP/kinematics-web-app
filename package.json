@@ -9,13 +9,14 @@
     "start": "vite preview"
   },
   "devDependencies": {
-    "vite": "^4.0.0",
-    "typescript": "^5.9.3",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "@types/three": "^0.181.0"
+    "@types/three": "^0.181.0",
+    "typescript": "^5.9.3",
+    "vite": "^4.0.0"
   },
   "dependencies": {
+    "lucide-react": "^0.562.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "three": "^0.181.2"

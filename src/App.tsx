@@ -2,7 +2,7 @@
 
 import React, { use, useRef, useState, useEffect } from 'react';
 
-import { Sidebar } from './components/sidebar/sidebar';
+import { RoboView, Sidebar } from './components/roboview/RoboView';
 import { Toolbar} from './components/toolbar/Toolbar';
 import { ThreeCanvas } from './components/threecanvas/ThreeCanvas';
 import { TaskList } from './components/taskview/TaskView';
@@ -59,7 +59,7 @@ export function App() {
     };
     return (
         <div id="app-container">
-            <Sidebar
+            <RoboView
                 roboPoints={roboPoints}
                 onAddPoint={() => startEditing("robo")}
                 onRemovePoint={() => removePoint("robo")}

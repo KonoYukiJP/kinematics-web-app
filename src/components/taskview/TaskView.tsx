@@ -1,4 +1,5 @@
 import './taskview.css';
+import { Plus, Minus } from 'lucide-react'
 
 type Props = {
     taskPoints: [number, number, number][];
@@ -9,16 +10,35 @@ type Props = {
 export function TaskList({ taskPoints, onAddPoint, onRemovePoint }: Props) {
     return (
         <div id="taskview">
-            <h2>操作</h2>
+            <h2>タスク設定</h2>
+            <p>ジョイントを指定し、そのジョイントが到達すべき目標座標を設定します。</p>
 
-            <ul className="list">
-                {taskPoints.map((p, i) => (
-                    <li key={i}>({p[0]}, {p[1]}, {p[2]})</li>
-                ))}
-            </ul>
-            <div className="list-tools">
-                <button onClick={onAddPoint}>＋ 追加</button>
-                <button onClick={onRemovePoint}>－ 削除</button>
+            <div className="table-wrapper">
+                <table className="points-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>X</th>
+                            <th>Y</th>
+                            <th>Z</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {taskPoints.map(([x, y, z], i) => (
+                            <tr key={i}>
+                                <td>{i + 1}</td>
+                                <td>{x.toFixed(2)}</td>
+                                <td>{y.toFixed(2)}</td>
+                                <td>{z.toFixed(2)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            <div className="list-controls">
+                <button onClick={onAddPoint}><Plus /></button>
+                <button onClick={onRemovePoint}><Minus /></button>
             </div>
         </div>
     );
