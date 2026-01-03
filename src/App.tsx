@@ -17,7 +17,7 @@ export function App() {
     const [taskPoints, setTaskPoints] = useState<[number, number, number][]>([]);
 
     // 編集モード
-    const [editorMode, setEditorMode] = useState<boolean>(false);
+    const [isEditing, setIsEditing] = useState<boolean>(false);
     const [target, setTarget] = useState<Target>(null);
 
     const [editingAxis, setEditingAxis] = useState<"x" | "y" | "z" | null>(null);
@@ -32,7 +32,7 @@ export function App() {
     const startEditing = (target: Target) => {
         setInputPoint([0, 0, 0]);
         setTarget(target);
-        setEditorMode(true);
+        setIsEditing(true);
     };
     // 点を保存
     const confirmEditing = () => {
@@ -43,11 +43,11 @@ export function App() {
             setTaskPoints(prev => [...prev, inputPoint]);
         }
         setTarget(null);
-        setEditorMode(false);
+        setIsEditing(false);
     };
     const cancelEditing = () => {
         setTarget(null);
-        setEditorMode(false);
+        setIsEditing(false);
     };
 
     const removePoint = (target: Target) => {
@@ -68,13 +68,13 @@ export function App() {
                 <ThreeCanvas
                     roboPoints={roboPoints} 
                     taskPoints={taskPoints}
+                    isEditing={isEditing} 
                     target={target}
                     inputPoint={inputPoint}
-                    editorMode={editorMode} 
                     onInputPointChange={setInputPoint}
                     onInputPointConfirm={confirmEditing}
                 />
-                {editorMode && (
+                {isEditing && (
                     <Toolbar
                         point={inputPoint}
                         onFocusX={() => {setEditingAxis("x");}}

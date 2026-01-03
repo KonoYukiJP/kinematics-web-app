@@ -16,14 +16,14 @@ import {
 export interface ThreeCanvasProps {
     roboPoints: [number, number, number][];
     taskPoints: [number, number, number][];
+    isEditing: boolean;
     target: "robo" | "task" | null;
     inputPoint: [number, number, number];
-    editorMode: boolean;
     onInputPointChange: (point: [number, number, number]) => void;
     onInputPointConfirm: () => void;
 }
 
-export function ThreeCanvas({ roboPoints, taskPoints, target, inputPoint, editorMode, onInputPointChange, onInputPointConfirm }: ThreeCanvasProps) {
+export function ThreeCanvas({ roboPoints, taskPoints, isEditing, target, inputPoint, onInputPointChange, onInputPointConfirm }: ThreeCanvasProps) {
     // === React refs ===
     const mountRef = useRef<HTMLDivElement>(null);
 
@@ -51,41 +51,52 @@ export function ThreeCanvas({ roboPoints, taskPoints, target, inputPoint, editor
 
     const taskMeshesRef = useRef<THREE.Mesh[]>([]);
 
-    const [stage, setStage] = useState<"xy" | "yz" | null>(null);
+    const [step, setStep] = useState<"jointindex" | "xy" | "z" | null>(null);
     const xyPlaneRef = useRef<THREE.Plane>(new THREE.Plane(new THREE.Vector3(0, 0, 1), 0));
     const yzPlaneRef = useRef<THREE.Plane>(new THREE.Plane(new THREE.Vector3(1, 0, 0), 0))
 
     const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
+    const mouseCoords = new THREE.Vector2();
 
-    // ========= カメラ切り替え ==========
-    // ========= 通常モードのカメラ ==========
-    function resetCameraDefault() {
-        cameraRef.current?.position.set(100, 100, 150);
-        controlsRef.current?.target.set(0, 50, 0);
+    // bounds center 取得
+    function getBoundsCenter(bounds: Bounds): THREE.Vector3 {
+        return new THREE.Vector3(
+            (bounds.xMax + bounds.xMin) / 2,
+            (bounds.yMax + bounds.yMin) / 2,
+            (bounds.zMax + bounds.zMin) / 2
+        );
     }
-    function setCameraForXY() {
-        cameraRef.current?.position.set(0, 0, 300);
-        cameraRef.current?.lookAt(0, 0, 0);
+    // view　操作
+    const view = {
+        setFront() {
+            const boundsCenter = getBoundsCenter(bounds);
+            cameraRef.current?.position.set(boundsCenter.x, boundsCenter.y, boundsCenter.z + 300);
+            controlsRef.current?.target.set(boundsCenter.x, boundsCenter.y, boundsCenter.z);
+        },
+        setRight() {
+            const boundsCenter = getBoundsCenter(bounds);
+            cameraRef.current?.position.set(boundsCenter.x + 300, boundsCenter.y, boundsCenter.z);
+            controlsRef.current?.target.set(boundsCenter.x, boundsCenter.y, boundsCenter.z);
+        },
+        reset() {
+            const boundsCenter = getBoundsCenter(bounds);
+            cameraRef.current?.position.set(boundsCenter.x + 100, boundsCenter.y + 50, boundsCenter.z + 150);
+            controlsRef.current?.target.set(boundsCenter.x, boundsCenter.y, boundsCenter.z);
+        }
     }
 
-    function setCameraForYZ(x: number) {
-        cameraRef.current?.position.set(300, 0, 0);
-        cameraRef.current?.lookAt(x, 0, 0);
-    }
-
-    // ========= レイキャスト ==========
+    // ---- raycast ----
     function raycastToPlane(e: MouseEvent, plane: THREE.Plane): THREE.Vector3 {
-        if (!mountRef.current) return new THREE.Vector3();
+        const result = new THREE.Vector3();
+        if (!mountRef.current || !cameraRef.current) return result;
 
         const rect = mountRef.current.getBoundingClientRect();
-        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        mouseCoords.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouseCoords.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
-        raycaster.setFromCamera(mouse, cameraRef.current!);
-        const pos = new THREE.Vector3();
-        raycaster.ray.intersectPlane(plane, pos);
-        return pos;
+        raycaster.setFromCamera(mouseCoords, cameraRef.current);
+        raycaster.ray.intersectPlane(plane, result);
+        return result;
     }
 
     useEffect(() => {
@@ -107,9 +118,6 @@ export function ThreeCanvas({ roboPoints, taskPoints, target, inputPoint, editor
 
         const unregisterControlsShortcuts = registerControlsShortcuts(controls);
 
-        // カメラ初期位置設定
-        resetCameraDefault();
-
         // 座標枠生成
         addAxesFrame(scene, bounds, unit);
 
@@ -119,7 +127,7 @@ export function ThreeCanvas({ roboPoints, taskPoints, target, inputPoint, editor
         }
         window.addEventListener('resize', onResize);
         
-        // アニメーション
+        // animation loop
         startAnimationLoop(scene, camera, renderer, labelRenderer, controls);
 
         // cleanup
@@ -130,120 +138,137 @@ export function ThreeCanvas({ roboPoints, taskPoints, target, inputPoint, editor
         };
     }, []);
 
-    // ==== editorMode の切り替え ====
+    // ---- 編集状態 ----
     useEffect(() => {
         const scene = sceneRef.current;
-        const camera = cameraRef.current;
-        if (!scene || !camera) return;
+        if (!scene) return;
 
-        if (!editorMode) {
-            // 編集終了
-            setStage(null);
-            if (previewMeshRef.current) scene.remove(previewMeshRef.current);
-            previewMeshRef.current = null;
+        // 編集終了
+        if (!isEditing) {
+            if (previewMeshRef.current) {
+                scene.remove(previewMeshRef.current);
+                previewMeshRef.current.geometry.dispose();
+                const material = previewMeshRef.current.material;
+                if (Array.isArray(material)) {
+                    material.forEach(m => m.dispose());
+                } else {
+                    material.dispose();
+                }
+                previewMeshRef.current = null;
+            }
+
+            if (previewLineRef.current) {
+                scene.remove(previewLineRef.current);
+                previewLineRef.current.geometry.dispose();
+                const material = previewLineRef.current.material;
+                if (Array.isArray(material)) {
+                    material.forEach(m => m.dispose());
+                } else {
+                    material.dispose();
+                }
+                previewLineRef.current = null;
+            }
+            view.reset();
+            setStep(null);
             return;
         }
+
         // 編集開始
-        setStage("xy");
         const previewMesh = new THREE.Mesh(
             new THREE.SphereGeometry(10, 16, 16),
             new THREE.MeshBasicMaterial({ color: 0x00ff00 })
         );
         scene.add(previewMesh);
         previewMeshRef.current = previewMesh;
+        view.setFront();
+        setStep("xy");
 
-        camera.position.set(0, 0, 300);
-        camera.lookAt(0, 0, 0);
-    }, [editorMode]);
+    }, [isEditing]);
 
-    // ========== マウスイベント ==========
+    // ---- mouse move ----
     useEffect(() => {
         const mount = mountRef.current;
         if (!mount) return;
 
         function onMouseMove(e: MouseEvent) {
-            if (!editorMode) return;
+            if (!isEditing) return;
 
-            if (stage === "xy") {
-                const pos = raycastToPlane(e, xyPlaneRef.current);
+            if (step === "xy") {
+                const position = raycastToPlane(e, xyPlaneRef.current);
                 onInputPointChange([
-                    pos.x, pos.y, pos.z
+                    position.x, position.y, position.z
                 ]);
             }
-            if (stage === "yz") {
-                const pos = raycastToPlane(e, yzPlaneRef.current);
+            if (step === "z") {
+                const position = raycastToPlane(e, yzPlaneRef.current);
                 onInputPointChange([
-                    inputPoint[0], inputPoint[1], pos.z
+                    inputPoint[0], inputPoint[1], position.z
                 ]);
             }
-
-            
         }
 
         mount.addEventListener("mousemove", onMouseMove);
         return () => mount.removeEventListener("mousemove", onMouseMove);
-    }, [editorMode, stage]);
+    }, [isEditing, step]);
 
-    // ==== クリック ====
+    // ---- click ----
     useEffect(() => {
         const mount = mountRef.current;
         if (!mount) return;
 
         function onClick() {
-            if (!editorMode) return;
+            if (!isEditing) return;
 
-            if (stage === "xy") {
-                setStage("yz");
+            if (step === "xy") {
                 yzPlaneRef.current.constant = -inputPoint[0];
-                cameraRef.current?.position.set(300, 0, 0);
-                cameraRef.current?.lookAt(inputPoint[0], 0, 0);
+                view.setRight();
+                setStep("z");
             }
-            if (stage === "yz") {
+            if (step === "z") {
                 onInputPointConfirm();
             }
         }
+
         mount.addEventListener("click", onClick);
         return () => mount.removeEventListener("click", onClick);
-    }, [editorMode, stage]);
+    }, [isEditing, step, inputPoint]);
 
-    // ========= 編集点の同期 ==========
+    // ---- preview mesh/line update ----
     useEffect(() => {
         const previewMesh = previewMeshRef.current;
-        if (!editorMode || !previewMesh) return;
+        if (!isEditing || !previewMesh || target === "task") return;
 
         previewMesh.position.set(inputPoint[0], inputPoint[1], inputPoint[2]);
 
-        if (target === "robo") {
-            const meshes = roboMeshesRef.current;
-            if (meshes.length === 0) return;
+        const meshes = roboMeshesRef.current;
+        if (meshes.length === 0) return;
 
-            const lastMesh = meshes[meshes.length - 1];
-            const a = lastMesh.position;
-            const b = inputPoint;
+        const lastMesh = meshes[meshes.length - 1];
+        const a = lastMesh.position;
+        const b = inputPoint;
 
-            const geometry = new THREE.BufferGeometry().setFromPoints([
-                a.clone(),
-                new THREE.Vector3(b[0], b[1], b[2])
-            ]);
-            if (!previewLineRef.current) {
-                const material = new THREE.LineBasicMaterial({ color: 0x00aa00 });
-                const line = new THREE.Line(geometry, material);
-                sceneRef.current?.add(line);
-                previewLineRef.current = line;
-            } else {
-                previewLineRef.current.geometry.dispose();
-                previewLineRef.current.geometry = geometry;
-            }
+        const geometry = new THREE.BufferGeometry().setFromPoints([
+            a.clone(),
+            new THREE.Vector3(b[0], b[1], b[2])
+        ]);
+        if (!previewLineRef.current) {
+            const material = new THREE.LineBasicMaterial({ color: 0x00aa00 });
+            const line = new THREE.Line(geometry, material);
+            sceneRef.current?.add(line);
+            previewLineRef.current = line;
+        } else {
+            previewLineRef.current.geometry.dispose();
+            previewLineRef.current.geometry = geometry;
         }
     }, [inputPoint]);
 
-    // ========= 点の同期 ==========
+    // ---- robo points update ----
     useEffect(() => {
         if (!sceneRef.current) return;
 
         const meshes = roboMeshesRef.current;
 
-        // 追加が必要な点
+        // add points
         while (meshes.length < roboPoints.length) {
             const geometry = new THREE.SphereGeometry(0.2, 16, 16);
             const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
@@ -251,20 +276,18 @@ export function ThreeCanvas({ roboPoints, taskPoints, target, inputPoint, editor
             sceneRef.current.add(mesh);
             meshes.push(mesh);
         }
-        
-        // 削除が必要な点
+        // remove points
         while (meshes.length > roboPoints.length) {
             const removed = meshes.pop();
             if (removed) sceneRef.current.remove(removed);
         }
-
-        // 座標の同期
+        // update positions
         roboPoints.forEach((p, i) => {
             meshes[i].position.set(p[0], p[1], p[2]);
         });
         
     }, [roboPoints]);
-
+    // ---- robo line update ----
     useEffect(() => {
         const scene = sceneRef.current;
         if (!scene) return;
@@ -294,7 +317,7 @@ export function ThreeCanvas({ roboPoints, taskPoints, target, inputPoint, editor
         roboLineRef.current = line;
     }, [roboPoints]);
 
-    // ========= 点の同期 ==========
+    // ---- task points update ----
     useEffect(() => {
         if (!sceneRef.current) return;
 
