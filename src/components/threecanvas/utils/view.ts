@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { Bounds } from './canvas';
+import { Bounds } from './chart';
 
 // bounds center 取得
 function getBoundsCenter(bounds: Bounds): THREE.Vector3 {
