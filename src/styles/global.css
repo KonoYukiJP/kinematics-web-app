@@ -1,0 +1,52 @@
+/* src/styles/global.css */
+
+:root {
+    --primary: #c9bddd;
+    --secondary: #dfe4e7;
+}
+
+.light-appearance {
+    --text-color: #000000;
+    --background-color: #ffffff;
+    --secondary-background-color: #f2f2f2;
+    --tertiary-background-color: #e6e6e6;
+    --quaternary-background-color: #cccccc;
+    --gray-15: #d9d9d9;
+    --border-color: var(--background-color);
+    --secandary-border-color: var(--secondary-background-color);
+    --checked-color: #66C466;
+}
+
+.dark-appearance {
+    --text-color: #ffffff;
+    --background-color: #000000;
+    --secondary-background-color: #1a1a1a;
+    --tertiary-background-color: #333333;
+    --quaternary-background-color: #4d4d4d;
+    --gray-15: #404040;
+    --border-color: var(--quaternary-background-color);
+    --secandary-border-color: #666666;
+    --checked-color: #67CE67;
+}
+
+html {
+    font-family: Verdana, "Hiragino Sans", 'Noto Sans JP', sans-serif;
+}
+
+body, #root {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* headings */
+h1 {
+    margin: 0 0 0 0;
+    font-size: 24px;
+}
+h2 {
+    margin: 4px 0 12px 0;
+    font-size: 20px;
+}

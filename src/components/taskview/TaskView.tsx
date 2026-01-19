@@ -1,6 +1,10 @@
-import './taskview.css';
+// src/components/taskview/TaskView.tsx
+
 import { Task } from '../../types/task';
 import { Plus, Minus } from 'lucide-react'
+
+import '@/styles/layout/sidebar.css';
+import '@/styles/ui/table.css';
 
 type Props = {
     taskPoints: Task[];
@@ -10,7 +14,7 @@ type Props = {
 
 export function TaskList({ taskPoints, onAddPoint, onRemovePoint }: Props) {
     return (
-        <div id="taskview">
+        <div className="sidebar">
             <h2>タスク設定</h2>
             <p>ジョイントを指定し、そのジョイントが到達すべき目標座標を設定します。</p>
 

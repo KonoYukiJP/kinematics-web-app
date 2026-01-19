@@ -1,0 +1,17 @@
+/* LoginSheet.css */
+
+.login-modal-switch {
+    text-align: center;      /* 中央揃え */
+    margin: 8px 0 8px 0; 
+}
+.link-button {
+    border: none;
+    padding: 0;
+    color: #3460fb;
+    background: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+.link-button:hover {
+    text-decoration: underline;
+}

@@ -1,0 +1,69 @@
+/* crc/components/login-sheet/sheet.css */
+
+.sheet-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sheet {
+    width: 320px;
+    border: 1px solid var(--border-color);
+    border-radius: 42px;
+    box-sizing: border-box;
+    padding: 18px;
+    color: var(--text-color);
+    background: var(--tertiary-background-color);
+}
+.sheet h2 {
+    margin: 4px 16px 12px 16px;
+    font-size: 28px;
+}
+.sheet form .section {
+    display: flex;
+    flex-direction: column; /* ラベルと入力を縦並び */
+    margin-bottom: 8px;
+}
+.sheet form .section label {
+    margin: 0 16px;
+    font-size: 14px;
+}
+.sheet form .section input {
+    height: 44px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 9999px;
+    font-size: 16px;
+    color: var(--text-color);
+    background-color: var(--background-color);
+}
+
+.sheet-buttons {
+    margin-top: 18px;
+    display: flex;
+    gap: 9px;
+    justify-content: space-between; /* 左右にボタンを配置 */
+}
+.sheet-buttons button {
+    flex: 1;
+    height: 44px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 9999px;
+    background-color: var(--quaternary-background-color);
+    font-size: 16px;
+    cursor: pointer;
+}
+.sheet-buttons button[type="submit"] {
+    color: #3460fb;
+}
+.sheet-buttons button[type="button"] {
+    color: #fe3939;
+}
+.sheet-buttons button:hover {
+    background-color: var(--gray-15);
+}

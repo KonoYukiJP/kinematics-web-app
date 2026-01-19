@@ -1,5 +1,9 @@
-import './roboview.css';
-import { Plus, Minus } from 'lucide-react'
+// src/components/roboview/roboView.tsx
+
+import { Plus, Minus } from 'lucide-react';
+
+import '@/styles/layout/sidebar.css';
+import '@/styles/ui/table.css';
 
 type Props = {
     roboPoints: [number, number, number][];
@@ -9,7 +13,7 @@ type Props = {
 
 export function RoboView({ roboPoints, onAddPoint, onRemovePoint }: Props) {
     return (
-        <div id="roboview">
+        <div className="sidebar">
             <h2>ジョイント設定</h2>
             <p>ロボットの各関節の位置を設定します。</p>
 

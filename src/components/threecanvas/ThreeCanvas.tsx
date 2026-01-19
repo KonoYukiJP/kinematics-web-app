@@ -3,30 +3,32 @@ import React, { useImperativeHandle, forwardRef, useRef, useEffect, useState, us
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer';
+import { Appearance } from '../../appearance/appearance';
+import { createThreeColorPalette, updateThreeAppearance } from './utils/appearance';
 import { Point } from '../../types/point';
 import { Task } from '../../types/task';
-import { initializeThreeScene, resizeThreeCanvas, cleanupThreeScene} from './utils/canvas';
+import { initializeThreeScene, resizeThreeCanvas, cleanupThreeScene} from './utils/three';
 import { Bounds, addAxesFrame } from './utils/chart'
 import { initializeOrbitControls, registerControlsShortcuts } from './utils/controls';
 import { startAnimationLoop } from './utils/animation';
 import * as view from './utils/view';
-import { getPointer, raycast, pickMesh } from './utils/raycast';
+import { getPointer, raycast, findNearestJointIndex } from './utils/raycast';
 
 export interface ThreeCanvasProps {
+    appearance: Appearance;
     roboPoints: Point[];
     tasks: Task[];
     isEditing: boolean;
     target: "robo" | "task" | null;
     inputPoint: Point;
-    selectedJointIndex?: number | null;
+    selectedJointIndex: number | null;
     onInputPointChange: (point: Point) => void;
-    setSelectedJointIndex: (index: number) => void;
+    setSelectedJointIndex: (index: number | null) => void;
     onInputPointConfirm: () => void;
 }
 
-export function ThreeCanvas({ roboPoints, tasks: taskPoints, isEditing, target, inputPoint, onInputPointChange, setSelectedJointIndex, onInputPointConfirm }: ThreeCanvasProps) {
-    // === React refs ===
-    const mountRef = useRef<HTMLDivElement>(null);
+export function ThreeCanvas({ appearance, roboPoints, tasks: taskPoints, isEditing, target, inputPoint, selectedJointIndex, onInputPointChange, setSelectedJointIndex, onInputPointConfirm }: ThreeCanvasProps) {
+    const [colorPalette, setColorPalette] = useState(() => createThreeColorPalette(appearance));
 
     const bounds: Bounds = {
         xMin: -50, xMax: 50,
@@ -34,30 +36,31 @@ export function ThreeCanvas({ roboPoints, tasks: taskPoints, isEditing, target, 
         zMin: -50, zMax: 50
     };
     const unit: number = 10;
+    const orthoViewSize = 100;
+    const sphereRadius = 0.8;
+    const hoverScale = 2;
 
-    // === Three.js ローカル変数 ===
+    const mountRef = useRef<HTMLDivElement>(null);
+
     const sceneRef = useRef<THREE.Scene | null>(null);
     const cameraRef = useRef<THREE.OrthographicCamera | null>(null);
-    const orthoViewSize = 100;
     const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
     const labelRendererRef = useRef<CSS2DRenderer | null>(null);
     const controlsRef = useRef<OrbitControls | null>(null);
 
-    // === 編集ステート ===
-    const previewMeshRef = useRef<THREE.Mesh | null>(null);
-    const previewLineRef = useRef<THREE.Line | null>(null);
+    const [step, setStep] = useState<"jointindex" | "xy" | "z" | null>(null);
+
+    const xyPlaneRef = useRef<THREE.Plane>(new THREE.Plane(new THREE.Vector3(0, 0, 1), 0));
+    const yzPlaneRef = useRef<THREE.Plane>(new THREE.Plane(new THREE.Vector3(1, 0, 0), 0));
 
     const roboMeshesRef = useRef<THREE.Mesh[]>([]);
     const roboLineRef = useRef<THREE.Line | null>(null);
 
     const taskMeshesRef = useRef<THREE.Mesh[]>([]);
 
-    const [step, setStep] = useState<"jointindex" | "xy" | "z" | null>(null);
-    const xyPlaneRef = useRef<THREE.Plane>(new THREE.Plane(new THREE.Vector3(0, 0, 1), 0));
-    const yzPlaneRef = useRef<THREE.Plane>(new THREE.Plane(new THREE.Vector3(1, 0, 0), 0))
-
-    const raycaster = new THREE.Raycaster();
-    const mouseCoords = new THREE.Vector2();
+    const previewMeshRef = useRef<THREE.Mesh | null>(null);
+    const previewLineRef = useRef<THREE.Line | null>(null);
+    const hoverSphereRef = useRef<THREE.Mesh | null>(null);
 
     function updateMeshScale() {
         const camera = cameraRef.current;
@@ -79,6 +82,11 @@ export function ThreeCanvas({ roboPoints, tasks: taskPoints, isEditing, target, 
         if (previewMeshRef.current) {
             previewMeshRef.current.scale.setScalar(scale);
         }
+
+        // hover
+        if (hoverSphereRef.current) {
+            hoverSphereRef.current.scale.setScalar(scale);
+        }
     }
 
     useEffect(() => {
@@ -86,7 +94,7 @@ export function ThreeCanvas({ roboPoints, tasks: taskPoints, isEditing, target, 
         if (!mount) return;
 
         //  ---- init Three.js ----
-        const { scene, camera, renderer, labelRenderer } = initializeThreeScene(mount);
+        const { scene, camera, renderer, labelRenderer } = initializeThreeScene(mount, colorPalette.background);
         sceneRef.current = scene;
         cameraRef.current = camera;
         rendererRef.current = renderer;
@@ -102,7 +110,21 @@ export function ThreeCanvas({ roboPoints, tasks: taskPoints, isEditing, target, 
         const unregisterControlsShortcuts = registerControlsShortcuts(controls);
 
         // 座標枠生成
-        addAxesFrame(scene, bounds, unit);
+        addAxesFrame(scene, bounds, unit, colorPalette.axis);
+
+        // ---- hover mesh ----
+        const hoverSphere = new THREE.Mesh(
+            new THREE.SphereGeometry(sphereRadius * hoverScale, 32, 16),
+            new THREE.MeshBasicMaterial({
+                color: 0xffff00,
+                transparent: true,
+                opacity: 0.7,
+                depthWrite: false,
+            })
+        );
+        hoverSphere.visible = false;
+        scene.add(hoverSphere);
+        hoverSphereRef.current = hoverSphere;
 
         // リサイズ対応
         const onResize = () => {
@@ -115,11 +137,29 @@ export function ThreeCanvas({ roboPoints, tasks: taskPoints, isEditing, target, 
 
         // cleanup
         return () => {
+            if (hoverSphereRef.current) {
+                scene.remove(hoverSphereRef.current);
+                hoverSphereRef.current.geometry.dispose();
+                hoverSphereRef.current = null;
+            }
             cleanupThreeScene(mount, renderer, labelRenderer);
+            controls.removeEventListener('change', updateMeshScale);
             unregisterControlsShortcuts();
             window.removeEventListener('resize', onResize);
         };
     }, []);
+
+
+    useEffect(() => {
+        const colorPalette = createThreeColorPalette(appearance);
+        setColorPalette(colorPalette);
+
+        const scene = sceneRef.current;
+        if (!scene) return;
+
+        updateThreeAppearance(scene, colorPalette);
+
+    }, [appearance]);
 
     // ---- isEditing change ----
     useEffect(() => {
@@ -154,16 +194,18 @@ export function ThreeCanvas({ roboPoints, tasks: taskPoints, isEditing, target, 
                 previewMeshRef.current.geometry.dispose();
                 previewMeshRef.current = null;
             }
-
             if (previewLineRef.current) {
                 scene.remove(previewLineRef.current);
                 previewLineRef.current.geometry.dispose();
                 previewLineRef.current = null;
             }
+            if (hoverSphereRef.current) {
+                hoverSphereRef.current.visible = false;
+            }
             view.reset(bounds, camera, controls);
         } else if (step === "xy") {
             const previewMesh = new THREE.Mesh(
-                new THREE.SphereGeometry(10, 16, 16),
+                new THREE.SphereGeometry(sphereRadius, 32, 16),
                 new THREE.MeshBasicMaterial({ color: 0x00ff00 })
             );
             scene.add(previewMesh);
@@ -187,15 +229,19 @@ export function ThreeCanvas({ roboPoints, tasks: taskPoints, isEditing, target, 
             if (!mount || !camera) return;
 
             const pointer = getPointer(event, mount);
-
+            if (step === "jointindex") {
+                const scale = 1 / camera.zoom;
+                const jointIndex = findNearestJointIndex(pointer, camera, roboMeshesRef.current, sphereRadius * scale * hoverScale);
+                setSelectedJointIndex(jointIndex);
+            }
             if (step === "xy") {
-                const position = raycast(raycaster, camera, pointer, xyPlaneRef.current);
+                const position = raycast(pointer, camera, xyPlaneRef.current);
                 onInputPointChange([
                     position.x, position.y, position.z
                 ]);
             }
             if (step === "z") {
-                const position = raycast(raycaster, camera, pointer, yzPlaneRef.current);
+                const position = raycast(pointer, camera, yzPlaneRef.current);
                 onInputPointChange([
                     inputPoint[0], inputPoint[1], position.z
                 ]);
@@ -204,33 +250,15 @@ export function ThreeCanvas({ roboPoints, tasks: taskPoints, isEditing, target, 
 
         mount.addEventListener("mousemove", onMouseMove);
         return () => mount.removeEventListener("mousemove", onMouseMove);
-    }, [isEditing, step]);
+    }, [step]);
 
     // ---- click ----
     useEffect(() => {
         const mount = mountRef.current;
         if (!mount) return;
-
         function onClick(event: MouseEvent) {
-            if (!isEditing) return;
-
             if (step === "jointindex") {
-                const mount = mountRef.current;
-                const camera = cameraRef.current;
-                if (!mount || !camera) return;
-
-                const pointer = getPointer(event, mount);
-
-                const jointIndex = pickMesh(
-                    raycaster,
-                    camera,
-                    pointer,
-                    roboMeshesRef.current
-                );
-
-                if (jointIndex === null) return;
-
-                setSelectedJointIndex(jointIndex);
+                if (selectedJointIndex === null) return;
                 setStep("xy");
                 return;
             }
@@ -247,7 +275,7 @@ export function ThreeCanvas({ roboPoints, tasks: taskPoints, isEditing, target, 
 
         mount.addEventListener("click", onClick);
         return () => mount.removeEventListener("click", onClick);
-    }, [isEditing, step, inputPoint]);
+    }, [step, inputPoint, selectedJointIndex]);
 
     // ---- preview mesh/line update ----
     useEffect(() => {
@@ -279,6 +307,26 @@ export function ThreeCanvas({ roboPoints, tasks: taskPoints, isEditing, target, 
             previewLineRef.current.geometry = geometry;
         }
     }, [inputPoint]);
+    // ---- selected joint ----
+    useEffect(() => {
+        console.log("selectedJointIndex", selectedJointIndex);
+        const hoverSphere = hoverSphereRef.current;
+        if (!hoverSphere) return;
+
+        if (selectedJointIndex === null) {
+            hoverSphere.visible = false;
+            return;
+        }
+
+        const mesh = roboMeshesRef.current[selectedJointIndex];
+        if (!mesh) {
+            hoverSphere.visible = false;
+            return;
+        }
+
+        hoverSphere.position.copy(mesh.position);
+        hoverSphere.visible = true;
+    }, [selectedJointIndex]);
 
     // ---- robo points update ----
     useEffect(() => {
@@ -288,7 +336,7 @@ export function ThreeCanvas({ roboPoints, tasks: taskPoints, isEditing, target, 
 
         // add points
         while (meshes.length < roboPoints.length) {
-            const geometry = new THREE.SphereGeometry(1, 16, 8);
+            const geometry = new THREE.SphereGeometry(sphereRadius, 32, 16);
             const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
             const mesh = new THREE.Mesh(geometry, material);
             sceneRef.current.add(mesh);
@@ -340,7 +388,7 @@ export function ThreeCanvas({ roboPoints, tasks: taskPoints, isEditing, target, 
 
         // 追加が必要な点
         while (meshes.length < taskPoints.length) {
-            const geometry = new THREE.SphereGeometry(1, 16, 8);
+            const geometry = new THREE.SphereGeometry(sphereRadius, 32, 16);
             const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
             const mesh = new THREE.Mesh(geometry, material);
             sceneRef.current.add(mesh);

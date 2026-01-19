@@ -1,0 +1,69 @@
+/* dropdown.css */
+
+.dropdown {
+    position: relative;
+    height: 100%;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+}
+.dropdown-button {
+    height: 40px;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 9999px;
+    box-sizing: border-box;
+    padding: 0 16px;
+    font-size: 16px;
+    color: inherit;
+    cursor: pointer;
+}
+.dropdown-button:hover {
+    background-color: var(--quaternary-background-color);
+}
+.dropdown-button.active {
+    border: 1px solid var(--secandary-border-color);
+    background: var(--quaternary-background-color);
+}
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 1000;
+    width: 200px;
+    background: var(--secondary-background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 30px;
+    box-sizing: border-box;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+}
+.dropdown-menu div,
+.dropdown-menu button {
+    width: 100%;
+    height: 44px;
+    /* background: none;  */
+    background: none;
+    border: none;
+    border-radius: 9999px;
+    box-sizing: border-box;
+    padding: 0 16px;
+    text-align: left;
+    font-size: 16px;
+    color: var(--text-color);
+    cursor: pointer;
+
+}
+.dropdown-menu button:hover {
+    background-color: var(--tertiary-background-color);
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+}
+.menu-item span {
+    font-size: 16px;
+    flex: 1;
+}

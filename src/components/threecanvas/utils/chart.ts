@@ -11,9 +11,10 @@ export type Bounds = {
 export function addAxesFrame(
     scene: THREE.Scene,
     bounds: Bounds,
-    unit: number
+    unit: number,
+    color: number
 ) {
-    const material = new THREE.LineBasicMaterial({ color: 0x000000 });
+    const material = new THREE.LineBasicMaterial({ color: color });
 
     // 頂点
     const frontTopLeft = new THREE.Vector3(bounds.xMin, bounds.yMax, bounds.zMax);
@@ -44,6 +45,7 @@ export function addAxesFrame(
     for (const [start, end] of edges) {
         const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
         const line = new THREE.Line(geometry, material);
+        line.userData.color = "axis";
         scene.add(line);
     }
 

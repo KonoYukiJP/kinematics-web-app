@@ -10,11 +10,11 @@ export function getPointer( event: MouseEvent, mount: HTMLDivElement ) {
 
 // ---- raycast ----
 export function raycast(
-    raycaster: THREE.Raycaster,
-    camera: THREE.Camera,
     pointer: THREE.Vector2,
+    camera: THREE.Camera,
     plane: THREE.Plane,
 ): THREE.Vector3 {
+    const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(pointer, camera);
 
     const result = new THREE.Vector3();
@@ -26,11 +26,11 @@ export function raycast(
 
 // ---- pick mesh ----
 export function pickMesh(
-    raycaster: THREE.Raycaster,
-    camera: THREE.Camera,
     pointer: THREE.Vector2,
+    camera: THREE.Camera,
     meshes: THREE.Mesh[],
 ): number | null {
+    const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(pointer, camera);
 
     const intersects = raycaster.intersectObjects(
@@ -44,4 +44,29 @@ export function pickMesh(
 
     if (index === -1) return null;
     return index;
+}
+
+export function findNearestJointIndex(
+    mouse: THREE.Vector2,
+    camera: THREE.OrthographicCamera,
+    meshes: THREE.Mesh[],
+    threshold: number
+): number | null {
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, camera);
+
+    const scale = 1 / camera.zoom;
+
+    let nearestIndex: number | null = null;
+    let minDistance = Infinity;
+
+    meshes.forEach((mesh, index) => {
+        const distance = raycaster.ray.distanceToPoint(mesh.position);
+        if (distance <= threshold && distance < minDistance) {
+            minDistance = distance;
+            nearestIndex = index;
+        }
+    });
+
+    return nearestIndex;
 }
