@@ -58,11 +58,10 @@ export function App() {
     const handleRegister = async (username: string, password: string) => {
         try {
             await register(username, password);
-            // 成功時
-            alert('登録が完了しました。ログインしてください。');
+            alert('登録が完了しました。続けてログインしてください。');
         } catch (err) {
              if (err instanceof Error && err.message === 'USER_ALREADY_EXISTS') {
-                alert('そのユーザー名は既に使われています');
+                alert('そのユーザー名は既に使われています。');
             } else {
                 alert('登録に失敗しました。');
             }
