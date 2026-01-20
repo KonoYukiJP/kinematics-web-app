@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
-    "rootDir": "source",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "rootDir": "src",
     "outDir": "./distribution",
     "module": "ESNext",
     "target": "ESNext",
@@ -11,5 +15,5 @@
     "jsx": "react-jsx",
     "types": ["vite/client", "node"]
   },
-  "include": ["source/**/*"]
+  "include": ["src/**/*"]
 }

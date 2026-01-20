@@ -14,3 +14,27 @@
     flex: 1;
     min-width: 0;
 }
+#three-canvas-container {
+    position: relative;
+}
+
+.solve-button {
+    position: absolute;
+    width: auto;
+    height: 52px;
+    z-index: 1;
+    right: 8px;
+    bottom: 8px;
+    padding: 0 22px;
+    border: 1px solid var(--border-color);
+    border-radius: 9999px;
+    box-sizing: border-box;
+    color: var(--text-color);
+    background: var(--secondary-background-color);
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.solve-button:hover {
+    background-color: var(--tertiary-background-color);
+}

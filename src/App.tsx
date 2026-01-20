@@ -1,14 +1,15 @@
 // App.tsx
 
 // Libraries
-import React, { use, useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 
 // Types
 import { Point } from './types/point';
 import { Task } from './types/task';
 
 // API
-import { register, login } from './api/auth';
+import { register, login } from './api/authentication';
+import { solveKinematics } from './api/solve';
 
 import { Appearance, getDefaultAppearance, useSystemAppearance } from './appearance/appearance';
 
@@ -29,6 +30,7 @@ export function App() {
     const [appearance, setAppearance] = useState<Appearance>(getDefaultAppearance());
 
     // ログイン状態
+    const [authToken, setAuthToken] = useState<string | null>(null);
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
     const [username, setUsername] = useState<string | null>(null);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
@@ -37,6 +39,7 @@ export function App() {
     // 点データ
     const [robotJoints, setRobotJoints] = useState<Point[]>([]);
     const [tasks, setTasks] = useState<Task[]>([]);
+    const tasksRef = useRef<Task[]>(tasks);
 
     // 編集モード
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -47,14 +50,34 @@ export function App() {
     const [inputPoint, setInputPoint] = useState<Point>([0, 0, 0]);
     const [selectedJointIndex, setSelectedJointIndex] = useState<number | null>(null);
     const inputPointRef = useRef<Point>(inputPoint);
+
     useEffect(() => {
-        inputPointRef.current = inputPoint;
-    }, [inputPoint]);
+        tasksRef.current = tasks;
+    }, [tasks]);
+
+    
+    
 
     useEffect(() => {
         setAppearance(systemAppearance);
     }, [systemAppearance]);
+
+    useEffect(() => {
+        inputPointRef.current = inputPoint;
+    }, [inputPoint]);
     
+    const handleLogin = async (username: string, password: string) => {
+        try {
+            const response = await login(username, password);
+            // 成功時
+            setIsLoggedIn(true);
+            setUsername(username);
+            setAuthToken(response.access_token);
+            setIsLoginModalOpen(false);
+        } catch (err) {
+            alert('ログインに失敗しました。');
+        }
+    };
     const handleRegister = async (username: string, password: string) => {
         try {
             await register(username, password);
@@ -67,19 +90,30 @@ export function App() {
             }
         }
     };
-
-    const handleLogin = async (username: string, password: string) => {
+    const handleSolveKinematics = async () => {
         try {
-            const response = await login(username, password);
-            console.log(response)
-            // 成功時
-            setIsLoggedIn(true);
-            setUsername(username);
-            setIsLoginModalOpen(false);
+            if (!authToken) {
+                alert('ログインをしてください。');
+                return;
+            }
+            if (robotJoints.length === 0) {
+                alert('ジョイントを設定してください。');
+                return;
+            }
+            if (tasks.length === 0) {
+                alert('タスクを設定してください。');
+                return;
+            }
+            const result = await solveKinematics(authToken, robotJoints, tasksRef.current, (joints) => {
+                console.log('中間ステップ:', joints);
+            });
+            console.log('結果:', result);
+            // TODO: 結果を state に保存して可視化
         } catch (err) {
-            alert('ログインに失敗しました。');
+            alert('計算に失敗しました。');
+            console.error(err);
         }
-    }
+    };
 
     const toggleAppearance = () => {
         setAppearance(prev => prev === 'light' ? 'dark' : 'light');
@@ -167,7 +201,7 @@ export function App() {
                         setSelectedJointIndex={setSelectedJointIndex}
                         onInputPointConfirm={confirmEditing}
                     />
-                    {isEditing && (
+                    {isEditing ? (
                         <Toolbar
                             point={inputPoint}
                             onFocusX={() => {setEditingAxis("x");}}
@@ -177,6 +211,10 @@ export function App() {
                             onConfirm={confirmEditing}
                             onCancel={cancelEditing}
                         />
+                    ) : (
+                        <button className="solve-button" onClick={handleSolveKinematics}>
+                            実行
+                        </button>
                     )}
                 </div>
 

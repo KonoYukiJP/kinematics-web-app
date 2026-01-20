@@ -8,12 +8,13 @@ export const initializeThreeScene = (mount: HTMLElement, backgroundColor: number
     const camera = new THREE.OrthographicCamera(0, 0, 0, 0, 0.1, 1000);
 
     const renderer = new THREE.WebGLRenderer();
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     mount.appendChild(renderer.domElement);
 
     const labelRenderer = new CSS2DRenderer();
     labelRenderer.domElement.classList.add('label-renderer');
     mount.appendChild(labelRenderer.domElement);
-
+    
     return {
         scene,
         camera,
@@ -47,6 +48,7 @@ export const resizeThreeCanvas = (
 
     camera.updateProjectionMatrix();
     renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     labelRenderer.setSize(width, height);
 }
 

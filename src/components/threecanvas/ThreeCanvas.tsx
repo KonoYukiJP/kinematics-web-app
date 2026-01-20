@@ -309,7 +309,6 @@ export function ThreeCanvas({ appearance, roboPoints, tasks: taskPoints, isEditi
     }, [inputPoint]);
     // ---- selected joint ----
     useEffect(() => {
-        console.log("selectedJointIndex", selectedJointIndex);
         const hoverSphere = hoverSphereRef.current;
         if (!hoverSphere) return;
 
