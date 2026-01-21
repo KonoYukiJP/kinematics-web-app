@@ -8,13 +8,15 @@ interface UseTaskMeshesArgs {
     sceneRef: React.RefObject<THREE.Scene | null>;
     taskMeshesRef: React.RefObject<THREE.Mesh[]>;
     sphereRadius: number;
+    color: number;
 }
 
 export function useTaskMeshes({
     tasks,
     sceneRef,
     taskMeshesRef,
-    sphereRadius
+    sphereRadius,
+    color
 }: UseTaskMeshesArgs) {
     useEffect(() => {
         const scene = sceneRef.current;
@@ -25,8 +27,9 @@ export function useTaskMeshes({
         // add meshes
         while (meshes.length < tasks.length) {
             const geometry = new THREE.SphereGeometry(sphereRadius, 32, 16);
-            const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const material = new THREE.MeshBasicMaterial({ color: color });
             const mesh = new THREE.Mesh(geometry, material);
+            mesh.userData.color = "task"
             scene.add(mesh);
             meshes.push(mesh);
         }

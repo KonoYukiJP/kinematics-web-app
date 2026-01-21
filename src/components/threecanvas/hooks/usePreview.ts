@@ -13,6 +13,7 @@ interface Props {
     hoverSphereRef: React.RefObject<THREE.Mesh | null>;
     sceneRef: React.RefObject<THREE.Scene | null>;
     selectedJointIndex: number | null;
+    color: number;
 }
 
 export function usePreview({
@@ -24,7 +25,8 @@ export function usePreview({
     previewLineRef,
     hoverSphereRef,
     sceneRef,
-    selectedJointIndex
+    selectedJointIndex,
+    color
 }: Props) {
     // ---- preview mesh/line ----
     useEffect(() => {
@@ -48,8 +50,9 @@ export function usePreview({
         ]);
 
         if (!previewLineRef.current) {
-            const material = new THREE.LineBasicMaterial({ color: 0x00aa00 });
+            const material = new THREE.LineBasicMaterial({ color: color });
             const line = new THREE.Line(geometry, material);
+            line.userData.color = "preview"
             sceneRef.current?.add(line);
             previewLineRef.current = line;
         } else {

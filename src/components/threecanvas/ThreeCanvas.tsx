@@ -124,12 +124,13 @@ export function ThreeCanvas({ appearance, joints, tasks, results, isEditing, isS
         const hoverSphere = new THREE.Mesh(
             new THREE.SphereGeometry(sphereRadius * hoverScale, 32, 16),
             new THREE.MeshBasicMaterial({
-                color: 0xffff00,
+                color: colorPalette.preview,
                 transparent: true,
                 opacity: 0.7,
                 depthWrite: false,
             })
         );
+        hoverSphere.userData.color = "preview"
         hoverSphere.visible = false;
         scene.add(hoverSphere);
         hoverSphereRef.current = hoverSphere;
@@ -214,8 +215,9 @@ export function ThreeCanvas({ appearance, joints, tasks, results, isEditing, isS
         } else if (step === "xy") {
             const previewMesh = new THREE.Mesh(
                 new THREE.SphereGeometry(sphereRadius, 32, 16),
-                new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+                new THREE.MeshBasicMaterial({ color: colorPalette.preview })
             );
+            previewMesh.userData.color = "preview"
             scene.add(previewMesh);
             previewMeshRef.current = previewMesh;
             view.setFront(bounds, camera, controls);
@@ -294,7 +296,8 @@ export function ThreeCanvas({ appearance, joints, tasks, results, isEditing, isS
         previewLineRef,
         hoverSphereRef,
         sceneRef,
-        selectedJointIndex
+        selectedJointIndex,
+        color: colorPalette.preview
     });
 
     useJointMeshes({
@@ -302,14 +305,16 @@ export function ThreeCanvas({ appearance, joints, tasks, results, isEditing, isS
         sceneRef,
         roboMeshesRef,
         roboLineRef,
-        sphereRadius
+        sphereRadius,
+        color: colorPalette.mesh
     });
 
     useTaskMeshes({
         tasks,
         sceneRef,
         taskMeshesRef,
-        sphereRadius
+        sphereRadius,
+        color: colorPalette.task
     });
 
     return (

@@ -9,9 +9,10 @@ interface Props {
     roboMeshesRef: React.RefObject<THREE.Mesh[]>;
     roboLineRef: React.RefObject<THREE.Line | null>;
     sphereRadius: number;
+    color: number
 }
 
-export function useJointMeshes({ displayJoints, sceneRef, roboMeshesRef, roboLineRef, sphereRadius }: Props) {
+export function useJointMeshes({ displayJoints, sceneRef, roboMeshesRef, roboLineRef, sphereRadius, color }: Props) {
     // ---- robo points update ----
     useEffect(() => {
         const scene = sceneRef.current;
@@ -22,8 +23,9 @@ export function useJointMeshes({ displayJoints, sceneRef, roboMeshesRef, roboLin
         // add points
         while (meshes.length < displayJoints.length) {
             const geometry = new THREE.SphereGeometry(sphereRadius, 32, 16);
-            const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const material = new THREE.MeshBasicMaterial({ color: color });
             const mesh = new THREE.Mesh(geometry, material);
+            mesh.userData.color = "mesh";
             scene.add(mesh);
             meshes.push(mesh);
         }
@@ -56,10 +58,11 @@ export function useJointMeshes({ displayJoints, sceneRef, roboMeshesRef, roboLin
         const vertices = displayJoints.map(p => new THREE.Vector3(p[0], p[1], p[2]));
 
         const geometry = new THREE.BufferGeometry().setFromPoints(vertices);
-        const material = new THREE.LineBasicMaterial({ color: 0x0000ff });
-
+        const material = new THREE.LineBasicMaterial({ color: color });
         const line = new THREE.Line(geometry, material);
+        line.userData.color = "mesh";
         scene.add(line);
         roboLineRef.current = line;
     }, [displayJoints, sceneRef, roboLineRef]);
 }
+

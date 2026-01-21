@@ -10,6 +10,9 @@ export type ThreeColorPalettes = {
     grid: number;
     background: number;
     label: string;
+    mesh: number;
+    task: number;
+    preview: number;
 };
 
 export function createThreeColorPalette(appearance: Appearance): ThreeColorPalettes {
@@ -20,6 +23,9 @@ export function createThreeColorPalette(appearance: Appearance): ThreeColorPalet
         grid: Number(colors.text.replace('#', '0x')),
         background: Number(colors.background.replace('#', '0x')),
         label: colors.text,
+        mesh: Number(colors.accent.replace('#', '0x')),
+        task: Number(colors.orange.replace('#', '0x')),
+        preview: Number(colors.yellow.replace('#', '0x'))
     };
 }
 
@@ -30,18 +36,22 @@ export function updateThreeAppearance(
     scene.background = new THREE.Color(colorPalette.background);
 
     scene.traverse((obj) => {
-        // obj が THREE.Line かどうかチェック
-        if (!(obj instanceof THREE.Line)) return;
+        // --- Line の更新 ---
+        if (obj instanceof THREE.Line) {
+            const colorKey = obj.userData?.color as keyof typeof colorPalette;
+            if (colorKey && colorPalette[colorKey] !== undefined) {
+                const mat = obj.material as THREE.LineBasicMaterial;
+                mat.color.set(colorPalette[colorKey]);
+            }
+        }
 
-        // userData.color が存在するかチェック
-        const colorKey = obj.userData?.color as keyof typeof colorPalette;
-        if (!colorKey) return;
-
-        // colorPalette に colorKey が存在するかチェック
-        if (colorPalette[colorKey] === undefined) return;
-
-        // 安全に Line のマテリアルに色をセット
-        const mat = obj.material as THREE.LineBasicMaterial;
-        mat.color.set(colorPalette[colorKey]);
+        // --- Mesh の更新 ---
+        if (obj instanceof THREE.Mesh) {
+            const colorKey = obj.userData?.color as keyof typeof colorPalette;
+            if (colorKey && colorPalette[colorKey] !== undefined) {
+                const mat = obj.material as THREE.MeshBasicMaterial;
+                mat.color.set(colorPalette[colorKey]);
+            }
+        }
     });
 }

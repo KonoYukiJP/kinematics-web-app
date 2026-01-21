@@ -122,17 +122,17 @@ async function uploadJointData(token: string, joints: Point[]) {
         lines.push(`-1.570796327\t1.570796327`);
         // 上位軸の番号リスト
         const upper = i < joints.length - 1 ? i + 1 : -1;
-        lines.push(`${upper}\t-1`);
+        lines.push(upper >= 0 ? `${upper}\t-1` : '-1');
         // 下位軸の番号リスト
         const lower = i > 0 ? i - 1 : -1;
-        lines.push(`${lower}\t-1`);
+        lines.push(lower >= 0 ? `${lower}\t-1` : '-1');
         // 強調パラメータの初期値
         lines.push(`0.01\t0.01`);
         // 回転軸：０ｘ００、並進軸：０ｘ０１、停止：0ｘ02
         lines.push(`0x00`);
     }
 
-    const content = lines.join('\n');
+    const content = lines.join('\n');    
 
     const file = new File(
         [content],
