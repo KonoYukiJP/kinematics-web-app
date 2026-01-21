@@ -16,8 +16,9 @@ import { getPointer, raycast, findNearestJointIndex } from './utils/raycast';
 
 export interface ThreeCanvasProps {
     appearance: Appearance;
-    roboPoints: Point[];
+    joints: Point[];
     tasks: Task[];
+    results: Point[];
     isEditing: boolean;
     target: "robo" | "task" | null;
     inputPoint: Point;
@@ -27,7 +28,7 @@ export interface ThreeCanvasProps {
     onInputPointConfirm: () => void;
 }
 
-export function ThreeCanvas({ appearance, roboPoints, tasks: taskPoints, isEditing, target, inputPoint, selectedJointIndex, onInputPointChange, setSelectedJointIndex, onInputPointConfirm }: ThreeCanvasProps) {
+export function ThreeCanvas({ appearance, joints, tasks, results, isEditing, target, inputPoint, selectedJointIndex, onInputPointChange, setSelectedJointIndex, onInputPointConfirm }: ThreeCanvasProps) {
     const [colorPalette, setColorPalette] = useState(() => createThreeColorPalette(appearance));
 
     const bounds: Bounds = {
@@ -334,7 +335,7 @@ export function ThreeCanvas({ appearance, roboPoints, tasks: taskPoints, isEditi
         const meshes = roboMeshesRef.current;
 
         // add points
-        while (meshes.length < roboPoints.length) {
+        while (meshes.length < joints.length) {
             const geometry = new THREE.SphereGeometry(sphereRadius, 32, 16);
             const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
             const mesh = new THREE.Mesh(geometry, material);
@@ -342,16 +343,16 @@ export function ThreeCanvas({ appearance, roboPoints, tasks: taskPoints, isEditi
             meshes.push(mesh);
         }
         // remove points
-        while (meshes.length > roboPoints.length) {
+        while (meshes.length > joints.length) {
             const removed = meshes.pop();
             if (removed) sceneRef.current.remove(removed);
         }
         // update positions
-        roboPoints.forEach((p, i) => {
+        joints.forEach((p, i) => {
             meshes[i].position.set(p[0], p[1], p[2]);
         });
         
-    }, [roboPoints]);
+    }, [joints]);
     // ---- robo line update ----
     useEffect(() => {
         const scene = sceneRef.current;
@@ -364,10 +365,10 @@ export function ThreeCanvas({ appearance, roboPoints, tasks: taskPoints, isEditi
             roboLineRef.current = null;
         }
 
-        if (roboPoints.length < 2) return;
+        if (joints.length < 2) return;
 
         // Vector3 配列に変換
-        const vertices = roboPoints.map(
+        const vertices = joints.map(
             p => new THREE.Vector3(p[0], p[1], p[2])
         );
 
@@ -377,7 +378,7 @@ export function ThreeCanvas({ appearance, roboPoints, tasks: taskPoints, isEditi
         const line = new THREE.Line(geometry, material);
         scene.add(line);
         roboLineRef.current = line;
-    }, [roboPoints]);
+    }, [joints]);
 
     // ---- task points update ----
     useEffect(() => {
@@ -386,7 +387,7 @@ export function ThreeCanvas({ appearance, roboPoints, tasks: taskPoints, isEditi
         const meshes = taskMeshesRef.current;
 
         // 追加が必要な点
-        while (meshes.length < taskPoints.length) {
+        while (meshes.length < tasks.length) {
             const geometry = new THREE.SphereGeometry(sphereRadius, 32, 16);
             const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
             const mesh = new THREE.Mesh(geometry, material);
@@ -395,17 +396,17 @@ export function ThreeCanvas({ appearance, roboPoints, tasks: taskPoints, isEditi
         }
         
         // 削除が必要な点
-        while (meshes.length > taskPoints.length) {
+        while (meshes.length > tasks.length) {
             const removed = meshes.pop();
             if (removed) sceneRef.current.remove(removed);
         }
 
         // 座標の同期
-        taskPoints.forEach(({jointIndex, targetPosition}, i) => {
+        tasks.forEach(({jointIndex, targetPosition}, i) => {
             meshes[i].position.set(targetPosition[0], targetPosition[1], targetPosition[2]);
         });
         
-    }, [taskPoints]);
+    }, [tasks]);
 
     return (
         <div ref={mountRef} id="three-canvas"/>

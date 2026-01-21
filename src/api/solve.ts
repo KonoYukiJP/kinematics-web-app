@@ -15,14 +15,14 @@ export async function solveKinematics(
     token: string,
     joints: Point[],
     tasks: Task[],
-    onStep: (joints: Joint[]) => void
 ) {
     console.log(joints, tasks);
     const { robot_dat } = await uploadJointData(token, joints);
-    await solveKinematicsWithStream(token, robot_dat, tasks, onStep);
+    const steps = await solveKinematicsWithStream(token, robot_dat, tasks);
+    return steps;
 }
 
-async function solveKinematicsWithStream(token: string, robotDat: string, tasks: Task[], onStep: (joints: Joint[]) => void) {
+async function solveKinematicsWithStream(token: string, robotDat: string, tasks: Task[]) {
     const steps: Joint[][] = [];
 
     const body = {
@@ -66,7 +66,7 @@ async function solveKinematicsWithStream(token: string, robotDat: string, tasks:
             if (data.type === "step") {
                 steps.push(data.joints);
             }
-            handleSolverEvent(data, onStep);
+            handleSolverEvent(data);
         }
     }
 
@@ -76,11 +76,13 @@ async function solveKinematicsWithStream(token: string, robotDat: string, tasks:
         if (data.type === "step") {
             steps.push(data.joints);
         }
-        handleSolverEvent(data, onStep);
+        handleSolverEvent(data);
     }
+
+    return steps;
 }
 
-function handleSolverEvent(event: any, onStep: (joints: Joint[]) => void) {
+function handleSolverEvent(event: any) {
     switch (event.type) {
         case "start":
             const {session_id, robot_id, robot_dat} = event;
@@ -92,12 +94,12 @@ function handleSolverEvent(event: any, onStep: (joints: Joint[]) => void) {
             break;
         case "step":
             const { step, meta, joints } = event;
-            onStep(joints);
             break;
         case "end":
             break;
         case "error":
             const { message, log_path } = event;
+            throw new Error(message);
             break;
     }
 }
@@ -134,7 +136,7 @@ async function uploadJointData(token: string, joints: Point[]) {
 
     const file = new File(
         [content],
-        'robot15.dat',
+        'joints.dat',
         { type: 'text/plain' }
     );
 

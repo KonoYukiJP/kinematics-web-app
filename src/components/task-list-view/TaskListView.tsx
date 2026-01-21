@@ -5,14 +5,15 @@ import { Plus, Minus } from 'lucide-react'
 
 import '@/styles/layout/sidebar.css';
 import '@/styles/ui/table.css';
+import '@/styles/ui/controls.css'
 
 type Props = {
-    taskPoints: Task[];
+    tasks: Task[];
     onAddPoint: () => void;
     onRemovePoint: () => void;
 };
 
-export function TaskList({ taskPoints, onAddPoint, onRemovePoint }: Props) {
+export function TaskListView({ tasks, onAddPoint, onRemovePoint }: Props) {
     return (
         <div className="sidebar">
             <h2>タスク設定</h2>
@@ -29,7 +30,7 @@ export function TaskList({ taskPoints, onAddPoint, onRemovePoint }: Props) {
                         </tr>
                     </thead>
                     <tbody>
-                        {taskPoints.map(({ jointIndex, targetPosition: [x, y, z]}, i) => (
+                        {tasks.map(({ jointIndex, targetPosition: [x, y, z]}, i) => (
                             <tr key={i}>
                                 <td>{jointIndex + 1}</td>
                                 <td>{x.toFixed(2)}</td>
@@ -41,9 +42,12 @@ export function TaskList({ taskPoints, onAddPoint, onRemovePoint }: Props) {
                 </table>
             </div>
 
-            <div className="list-controls">
+            <div className="dual-controls list-controls">
                 <button onClick={onAddPoint}><Plus /></button>
-                <button onClick={onRemovePoint}><Minus /></button>
+                <button 
+                    onClick={onRemovePoint}
+                    disabled={tasks.length === 0}
+                ><Minus /></button>
             </div>
         </div>
     );

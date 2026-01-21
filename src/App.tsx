@@ -16,10 +16,10 @@ import { Appearance, getDefaultAppearance, useSystemAppearance } from './appeara
 // Components
 import { AppHeader } from './components/app-header/AppHeader';
 import { LoginSheet } from './components/login-sheet/LoginSheet';
-import { RoboView } from './components/roboview/RoboView';
+import { JointListView } from './components/joint-list-view/JointListView';
+import { TaskListView } from './components/task-list-view/TaskListView';
 import { Toolbar} from './components/toolbar/Toolbar';
 import { ThreeCanvas } from './components/threecanvas/ThreeCanvas';
-import { TaskList } from './components/taskview/TaskView';
 
 // Styles
 import './app.css';
@@ -33,13 +33,14 @@ export function App() {
     const [authToken, setAuthToken] = useState<string | null>(null);
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
     const [username, setUsername] = useState<string | null>(null);
-    const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+    const [isShowingLoginSheet, setIsShowingLoginSheet] = useState<boolean>(false);
 
     type Target = "robo" | "task" | null;
     // 点データ
     const [robotJoints, setRobotJoints] = useState<Point[]>([]);
     const [tasks, setTasks] = useState<Task[]>([]);
-    const tasksRef = useRef<Task[]>(tasks);
+    const [isShowingResults, setIsShowingResults] = useState<boolean>(false);
+    const [results, setResults] = useState<Point[]>([]);
 
     // 編集モード
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -50,13 +51,6 @@ export function App() {
     const [inputPoint, setInputPoint] = useState<Point>([0, 0, 0]);
     const [selectedJointIndex, setSelectedJointIndex] = useState<number | null>(null);
     const inputPointRef = useRef<Point>(inputPoint);
-
-    useEffect(() => {
-        tasksRef.current = tasks;
-    }, [tasks]);
-
-    
-    
 
     useEffect(() => {
         setAppearance(systemAppearance);
@@ -73,7 +67,7 @@ export function App() {
             setIsLoggedIn(true);
             setUsername(username);
             setAuthToken(response.access_token);
-            setIsLoginModalOpen(false);
+            setIsShowingLoginSheet(false);
         } catch (err) {
             alert('ログインに失敗しました。');
         }
@@ -94,6 +88,7 @@ export function App() {
         try {
             if (!authToken) {
                 alert('ログインをしてください。');
+                setIsShowingLoginSheet(true);
                 return;
             }
             if (robotJoints.length === 0) {
@@ -104,11 +99,15 @@ export function App() {
                 alert('タスクを設定してください。');
                 return;
             }
-            const result = await solveKinematics(authToken, robotJoints, tasksRef.current, (joints) => {
-                console.log('中間ステップ:', joints);
-            });
-            console.log('結果:', result);
-            // TODO: 結果を state に保存して可視化
+            const steps = await solveKinematics(authToken, robotJoints, tasks);
+
+            const positions = steps[0]
+                .slice()
+                .sort((a, b) => a.joint_id - b.joint_id)
+                .map(position => [position.x, position.y, position.z] as Point);
+            
+            setResults(positions);
+            console.log('最終結果:', positions);
         } catch (err) {
             alert('計算に失敗しました。');
             console.error(err);
@@ -160,7 +159,7 @@ export function App() {
                 isLoggedIn={isLoggedIn}
                 username={username ?? undefined}
                 onLogin={() => {
-                    setIsLoginModalOpen(true);
+                    setIsShowingLoginSheet(true);
                 }}
                 onLogout={() => {
                     setIsLoggedIn(false);
@@ -170,9 +169,9 @@ export function App() {
                 onToggleAppearance={toggleAppearance}
             />
 
-            {isLoginModalOpen && (
+            {isShowingLoginSheet && (
                 <LoginSheet
-                    onCancel={() => setIsLoginModalOpen(false)}
+                    onCancel={() => setIsShowingLoginSheet(false)}
                     onRegister={async (username, password) => {
                         handleRegister(username, password);
                     }}
@@ -183,16 +182,18 @@ export function App() {
             )}
 
             <main id="app-main">
-                <RoboView
-                    roboPoints={robotJoints}
+                <JointListView
+                    joints={robotJoints}
+                    results={results}
                     onAddPoint={() => startEditing("robo")}
                     onRemovePoint={() => removePoint("robo")}
                 />
                 <div id="three-canvas-container">
                     <ThreeCanvas
                         appearance={appearance}
-                        roboPoints={robotJoints} 
+                        joints={robotJoints} 
                         tasks={tasks}
+                        results={results}
                         isEditing={isEditing} 
                         target={target}
                         inputPoint={inputPoint}
@@ -218,8 +219,8 @@ export function App() {
                     )}
                 </div>
 
-                <TaskList
-                    taskPoints={tasks}
+                <TaskListView
+                    tasks={tasks}
                     onAddPoint={() => startEditing("task")}
                     onRemovePoint={() => removePoint("task")}
                 />

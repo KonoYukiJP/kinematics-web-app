@@ -1,0 +1,25 @@
+/* JointListView.css */
+
+.tab-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.tab-controls button.active {
+    background: var(--accent-color);
+    color: white;
+}
+
+.sidebar-header {
+    position: relative;
+    padding-right: 48px;
+}
+
+.navigation-controls {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+

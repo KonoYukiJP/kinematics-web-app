@@ -1,0 +1,51 @@
+/* controls.css */
+
+/* 追加·削除 ボタンエリア */
+.dual-controls {
+    position: absolute;
+    border-radius: 9999px;
+    height: 44px;
+    box-sizing: border-box;
+    padding: 4px;
+    display: flex;
+    gap: 8px;
+    background-color: var(--tertiary-background-color);
+}
+.dual-controls button {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 9999px;
+    color: var(--text-color);
+    background: none;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.dual-controls button:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: 4px;
+    bottom: 4px;
+    width: 1px;
+    background-color: var(--quaternary-background-color);
+}
+.dual-controls button:not(:disabled):hover {
+    background-color: var(--quaternary-background-color);
+}
+.dual-controls:has(button:not(:disabled):hover) button::after {
+    opacity: 0;
+}
+.dual-controls button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.list-controls {
+    position: absolute;
+    bottom: 8px;
+}
