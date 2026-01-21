@@ -187,6 +187,8 @@ export function App() {
                     results={results}
                     onAddPoint={() => startEditing("robo")}
                     onRemovePoint={() => removePoint("robo")}
+                    isShowingResults={isShowingResults}
+                    setIsShowingResults={setIsShowingResults}
                 />
                 <div id="three-canvas-container">
                     <ThreeCanvas
@@ -195,6 +197,7 @@ export function App() {
                         tasks={tasks}
                         results={results}
                         isEditing={isEditing} 
+                        isShowingResults={isShowingResults}
                         target={target}
                         inputPoint={inputPoint}
                         onInputPointChange={setInputPoint}

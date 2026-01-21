@@ -7,6 +7,11 @@ import { Appearance } from '../../appearance/appearance';
 import { createThreeColorPalette, updateThreeAppearance } from './utils/appearance';
 import { Point } from '../../types/point';
 import { Task } from '../../types/task';
+
+import { usePreview } from './hooks/usePreview';
+import { useJointMeshes } from './hooks/useJointMeshes';
+import { useTaskMeshes } from './hooks/useTaskMeshes'
+
 import { initializeThreeScene, resizeThreeCanvas, cleanupThreeScene} from './utils/three';
 import { Bounds, addAxesFrame } from './utils/chart'
 import { initializeOrbitControls, registerControlsShortcuts } from './utils/controls';
@@ -20,6 +25,7 @@ export interface ThreeCanvasProps {
     tasks: Task[];
     results: Point[];
     isEditing: boolean;
+    isShowingResults: boolean;
     target: "robo" | "task" | null;
     inputPoint: Point;
     selectedJointIndex: number | null;
@@ -28,8 +34,9 @@ export interface ThreeCanvasProps {
     onInputPointConfirm: () => void;
 }
 
-export function ThreeCanvas({ appearance, joints, tasks, results, isEditing, target, inputPoint, selectedJointIndex, onInputPointChange, setSelectedJointIndex, onInputPointConfirm }: ThreeCanvasProps) {
+export function ThreeCanvas({ appearance, joints, tasks, results, isEditing, isShowingResults, target, inputPoint, selectedJointIndex, onInputPointChange, setSelectedJointIndex, onInputPointConfirm }: ThreeCanvasProps) {
     const [colorPalette, setColorPalette] = useState(() => createThreeColorPalette(appearance));
+    const displayJoints = isShowingResults ? results : joints;
 
     const bounds: Bounds = {
         xMin: -50, xMax: 50,
@@ -278,135 +285,32 @@ export function ThreeCanvas({ appearance, joints, tasks, results, isEditing, tar
         return () => mount.removeEventListener("click", onClick);
     }, [step, inputPoint, selectedJointIndex]);
 
-    // ---- preview mesh/line update ----
-    useEffect(() => {
-        const previewMesh = previewMeshRef.current;
-        if (!isEditing || !previewMesh) return;
+    usePreview({
+        inputPoint,
+        target,
+        isEditing,
+        roboMeshesRef,
+        previewMeshRef,
+        previewLineRef,
+        hoverSphereRef,
+        sceneRef,
+        selectedJointIndex
+    });
 
-        previewMesh.position.set(inputPoint[0], inputPoint[1], inputPoint[2]);
+    useJointMeshes({
+        displayJoints,
+        sceneRef,
+        roboMeshesRef,
+        roboLineRef,
+        sphereRadius
+    });
 
-        if (target === "task") return;
-
-        const meshes = roboMeshesRef.current;
-        if (meshes.length === 0) return;
-
-        const lastMesh = meshes[meshes.length - 1];
-        const a = lastMesh.position;
-        const b = inputPoint;
-
-        const geometry = new THREE.BufferGeometry().setFromPoints([
-            a.clone(),
-            new THREE.Vector3(b[0], b[1], b[2])
-        ]);
-        if (!previewLineRef.current) {
-            const material = new THREE.LineBasicMaterial({ color: 0x00aa00 });
-            const line = new THREE.Line(geometry, material);
-            sceneRef.current?.add(line);
-            previewLineRef.current = line;
-        } else {
-            previewLineRef.current.geometry.dispose();
-            previewLineRef.current.geometry = geometry;
-        }
-    }, [inputPoint]);
-    // ---- selected joint ----
-    useEffect(() => {
-        const hoverSphere = hoverSphereRef.current;
-        if (!hoverSphere) return;
-
-        if (selectedJointIndex === null) {
-            hoverSphere.visible = false;
-            return;
-        }
-
-        const mesh = roboMeshesRef.current[selectedJointIndex];
-        if (!mesh) {
-            hoverSphere.visible = false;
-            return;
-        }
-
-        hoverSphere.position.copy(mesh.position);
-        hoverSphere.visible = true;
-    }, [selectedJointIndex]);
-
-    // ---- robo points update ----
-    useEffect(() => {
-        if (!sceneRef.current) return;
-
-        const meshes = roboMeshesRef.current;
-
-        // add points
-        while (meshes.length < joints.length) {
-            const geometry = new THREE.SphereGeometry(sphereRadius, 32, 16);
-            const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-            const mesh = new THREE.Mesh(geometry, material);
-            sceneRef.current.add(mesh);
-            meshes.push(mesh);
-        }
-        // remove points
-        while (meshes.length > joints.length) {
-            const removed = meshes.pop();
-            if (removed) sceneRef.current.remove(removed);
-        }
-        // update positions
-        joints.forEach((p, i) => {
-            meshes[i].position.set(p[0], p[1], p[2]);
-        });
-        
-    }, [joints]);
-    // ---- robo line update ----
-    useEffect(() => {
-        const scene = sceneRef.current;
-        if (!scene) return;
-
-        // 既存の線を削除
-        if (roboLineRef.current) {
-            scene.remove(roboLineRef.current);
-            roboLineRef.current.geometry.dispose();
-            roboLineRef.current = null;
-        }
-
-        if (joints.length < 2) return;
-
-        // Vector3 配列に変換
-        const vertices = joints.map(
-            p => new THREE.Vector3(p[0], p[1], p[2])
-        );
-
-        const geometry = new THREE.BufferGeometry().setFromPoints(vertices);
-        const material = new THREE.LineBasicMaterial({ color: 0x0000ff });
-
-        const line = new THREE.Line(geometry, material);
-        scene.add(line);
-        roboLineRef.current = line;
-    }, [joints]);
-
-    // ---- task points update ----
-    useEffect(() => {
-        if (!sceneRef.current) return;
-
-        const meshes = taskMeshesRef.current;
-
-        // 追加が必要な点
-        while (meshes.length < tasks.length) {
-            const geometry = new THREE.SphereGeometry(sphereRadius, 32, 16);
-            const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-            const mesh = new THREE.Mesh(geometry, material);
-            sceneRef.current.add(mesh);
-            meshes.push(mesh);
-        }
-        
-        // 削除が必要な点
-        while (meshes.length > tasks.length) {
-            const removed = meshes.pop();
-            if (removed) sceneRef.current.remove(removed);
-        }
-
-        // 座標の同期
-        tasks.forEach(({jointIndex, targetPosition}, i) => {
-            meshes[i].position.set(targetPosition[0], targetPosition[1], targetPosition[2]);
-        });
-        
-    }, [tasks]);
+    useTaskMeshes({
+        tasks,
+        sceneRef,
+        taskMeshesRef,
+        sphereRadius
+    });
 
     return (
         <div ref={mountRef} id="three-canvas"/>

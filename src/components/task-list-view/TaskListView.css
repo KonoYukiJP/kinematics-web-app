@@ -1,0 +1,6 @@
+/* TaskListView.css */
+
+.task-list-view {
+    border-left: 1px solid var(--tertiary-background-color);
+    box-sizing: border-box;
+}

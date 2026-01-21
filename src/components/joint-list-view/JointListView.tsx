@@ -13,33 +13,31 @@ type Props = {
     results: [number, number, number][];
     onAddPoint: () => void;
     onRemovePoint: () => void;
+    isShowingResults: boolean;
+    setIsShowingResults: (value: boolean) => void;
 };
 
-export function JointListView({ joints, results, onAddPoint, onRemovePoint }: Props) {
-    const [activeTab, setActiveTab] = useState<'input' | 'result'>('input');
-    const displayJoints = activeTab === 'input' ? joints : results;
+export function JointListView({ joints, results, onAddPoint, onRemovePoint, isShowingResults, setIsShowingResults}: Props) {
+    const displayJoints = isShowingResults ? results : joints;
 
     return (
-        <div className="sidebar">
+        <div className="sidebar joint-list-view">
             <div className="sidebar-header">
-                {activeTab === 'input' ? (
-                    <h2>ジョイント設定</h2>
-                ) : (
-                    <h2>計算結果</h2>
-                )}
+                <h2>{isShowingResults ? '計算結果' : 'ジョイント設定'}</h2>
+
                 {results.length !== 0 && (
                     <div className="dual-controls navigation-controls">
                     <button
                         type="button"
-                        onClick={() => setActiveTab('input')}
-                        disabled={activeTab === 'input'}
+                        onClick={() => setIsShowingResults(false)}
+                        disabled={!isShowingResults}
                     >
                         <ChevronLeft />
                     </button>
                     <button
                         type="button"
-                        onClick={() => setActiveTab('result')}
-                        disabled={activeTab === 'result'}
+                        onClick={() => setIsShowingResults(true)}
+                        disabled={isShowingResults}
                     >
                         <ChevronRight />
                     </button>
@@ -47,10 +45,10 @@ export function JointListView({ joints, results, onAddPoint, onRemovePoint }: Pr
                 )}
             </div>
 
-            {activeTab === 'input' ? (
-                <p>ロボットの各関節の位置を設定します。</p>
-            ) : (
+            {isShowingResults ? (
                 <p>逆運動学によって計算された関節位置です。</p>
+            ) : (
+                <p>ロボットの各関節の位置を設定します。</p>
             )}
 
             <div className="table-wrapper">

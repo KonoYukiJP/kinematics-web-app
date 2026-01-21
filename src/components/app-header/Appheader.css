@@ -3,6 +3,7 @@
 #app-header {
     width: 100%;
     height: 44px;
+    border-bottom: 1px solid var(--quaternary-background-color);
     box-sizing: border-box;
     padding: 0 8px;
     display: flex;
