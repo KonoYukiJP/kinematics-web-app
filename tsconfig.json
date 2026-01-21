@@ -5,7 +5,7 @@
       "@/*": ["src/*"]
     },
     "rootDir": "src",
-    "outDir": "./distribution",
+    "outDir": "./dist",
     "module": "ESNext",
     "target": "ESNext",
     "strict": true,

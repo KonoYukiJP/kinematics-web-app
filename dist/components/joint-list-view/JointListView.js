@@ -1,0 +1,10 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { Plus, Minus, ChevronLeft, ChevronRight } from 'lucide-react';
+import '@/styles/layout/sidebar.css';
+import '@/styles/ui/table.css';
+import '@/styles/ui/controls.css';
+import './JointListView.css';
+export function JointListView({ joints, results, onAddPoint, onRemovePoint, isShowingResults, setIsShowingResults }) {
+    const displayJoints = isShowingResults ? results : joints;
+    return (_jsxs("div", { className: "sidebar joint-list-view", children: [_jsxs("div", { className: "sidebar-header", children: [_jsx("h2", { children: isShowingResults ? '計算結果' : 'ジョイント設定' }), results.length !== 0 && (_jsxs("div", { className: "dual-controls navigation-controls", children: [_jsx("button", { type: "button", onClick: () => setIsShowingResults(false), disabled: !isShowingResults, children: _jsx(ChevronLeft, {}) }), _jsx("button", { type: "button", onClick: () => setIsShowingResults(true), disabled: isShowingResults, children: _jsx(ChevronRight, {}) })] }))] }), isShowingResults ? (_jsx("p", { children: "\u9006\u904B\u52D5\u5B66\u306B\u3088\u3063\u3066\u8A08\u7B97\u3055\u308C\u305F\u95A2\u7BC0\u4F4D\u7F6E\u3067\u3059\u3002" })) : (_jsx("p", { children: "\u30ED\u30DC\u30C3\u30C8\u306E\u5404\u95A2\u7BC0\u306E\u4F4D\u7F6E\u3092\u8A2D\u5B9A\u3057\u307E\u3059\u3002" })), _jsx("div", { className: "table-wrapper", children: _jsxs("table", { className: "points-table", children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "#" }), _jsx("th", { children: "X" }), _jsx("th", { children: "Y" }), _jsx("th", { children: "Z" })] }) }), _jsx("tbody", { children: displayJoints.map(([x, y, z], i) => (_jsxs("tr", { children: [_jsx("td", { children: i + 1 }), _jsx("td", { children: x.toFixed(2) }), _jsx("td", { children: y.toFixed(2) }), _jsx("td", { children: z.toFixed(2) })] }, i))) })] }) }), _jsxs("div", { className: "dual-controls list-controls", children: [_jsx("button", { onClick: onAddPoint, children: _jsx(Plus, {}) }), _jsx("button", { onClick: onRemovePoint, disabled: joints.length === 0, children: _jsx(Minus, {}) })] })] }));
+}

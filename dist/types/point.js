@@ -1,0 +1,2 @@
+// point.ts
+export {};

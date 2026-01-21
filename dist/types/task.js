@@ -1,0 +1,2 @@
+// task.ts
+export {};
