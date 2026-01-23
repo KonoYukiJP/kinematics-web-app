@@ -2,45 +2,49 @@
 
 #toolbar {
     position: absolute;
-    bottom: 16px;
+    bottom: 8px;
     left: 50%;
     transform: translateX(-50%);
     pointer-events: auto;
-    border-top: 1px solid #333;
-    border-radius: 16px;
+    border: 1px solid var(--background-color);
+    border-radius: 33px;
     box-sizing: border-box;
     padding: 8px;
-    background-color: #1d1d1d;
+    background-color: var(--secondary-background-color);
     display: flex;
     gap: 8px;
 }
 
 /* 各入力行 (X/Y/Z) */
 .pointinput {
+    height: 44px;
+    border-radius: 9999px;
+    padding-left: 16px;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
-    gap: 0;
+    gap: 16px;
+    background-color: var(--tertiary-background-color);
 }
 
 /* X, Y, Z ラベル */
 .pointinput label {
-    width: 16px;
     font-size: 16px;
-    color: white;
+    color: var(--text-color);
 }
 
 /* 数字入力 */
 .pointinput input {
-    flex: 1;
+    width: 88px;
     height: 44px;
+    flex: 1;
     padding: 8px;
     border: none;
     box-sizing: border-box;
-    border-radius: 8px;
+    border-radius: 9999px;
     font-size: 16px;
-    color: #fff;
-    background: none;
-    outline: none;
+    color: var(--text-color);
+    background-color: var(--background-color);
     text-align: right;
 }
 
@@ -49,10 +53,7 @@ input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
 }
 
-.pointinput input:focus {
-    border: 1px solid #666;
-    background-color: #444;
-}
+
 
 /* 下のボタン（✖️と✔️） */
 .toolbar-buttons {
@@ -65,13 +66,12 @@ input[type="number"]::-webkit-outer-spin-button {
     height: 44px;
     padding: 8px 0;
     border: none;
-    border-radius: 8px;
+    border-radius: 9999px;
     font-size: 16px;
-    color: white;
+    color: var(--text-color);
     background: none;
     cursor: pointer;
 }
 
 .toolbar-buttons button:hover {
-    background-color: #444;
-}
+    background-color: var(--tertiary-background-color
