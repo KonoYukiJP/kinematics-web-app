@@ -19,10 +19,10 @@ import { LoginSheet } from './components/login-sheet/LoginSheet';
 import { JointListView } from './components/joint-list-view/JointListView';
 import { TaskListView } from './components/task-list-view/TaskListView';
 import { Toolbar} from './components/toolbar/Toolbar';
-import { ThreeCanvas } from './components/threecanvas/ThreeCanvas';
+import { ThreeCanvas } from './components/three-canvas/ThreeCanvas';
 
 // Styles
-import './app.css';
+import './App.css';
 
 // Main App Component
 export function App() {
@@ -108,6 +108,7 @@ export function App() {
             
             setResults(positions);
             console.log('最終結果:', positions);
+            setIsShowingResults(true);
         } catch (err) {
             alert('計算に失敗しました。');
             console.error(err);
